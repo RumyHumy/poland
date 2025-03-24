@@ -59,13 +59,14 @@ struct ExpTree {
 ExpTree ExpTreeAlloc(char* str) {
 	char** infix = ToksAlloc(str);
 	PrintStringArray(infix, ", ");
+
 	ExpTree exp;
 	return exp;
 }
 
 void ExpTreeFree(ExpTree exp) {
-	free(exp.toks[0]);
-	free(exp.toks);
+	//free(exp.toks[0]);
+	//free(exp.toks);
 	// TODO: Tree free
 }
 
@@ -84,7 +85,7 @@ int main(int argc, char* argv[]) {
 			printf("Not enough arguments.\n");
 		else
 			printf("Too much arguments.\n");
-		printf("./pol \"a+b*c\"");
+		printf("./pol \"a+b*c\"\n");
 		exit(1);
 	}
 
