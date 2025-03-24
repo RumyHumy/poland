@@ -6,7 +6,7 @@ opdic = { "+": 1, "-": 1, "*": 2, "/": 2, "^": 3 }
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        if sys.argv < 1: print("Not enough arguments.")
+        if len(sys.argv) < 1: print("Not enough arguments.")
         else: print("Too much arguments.")
         exit(1)
 
@@ -43,9 +43,15 @@ if __name__ == "__main__":
 
     for t in infix:
         if opdic.get(t):
-            while ops and opdic.get(t) <= opdic.get(ops[-1]):
+            while ops and ops[-1] != "(" and opdic.get(t) <= opdic.get(ops[-1]):
                 AddOp(stack, ops)
             ops.append(t)
+        elif t == "(":
+            ops.append(t)
+        elif t == ")":
+            while ops and ops[-1] != "(":
+                AddOp(stack, ops)
+            ops.pop()
         else:
             stack.append(ExpNode(t, None, None))
     print()
@@ -53,6 +59,8 @@ if __name__ == "__main__":
         AddOp(stack, ops)
 
     # P R I N T
+
+    root = stack[0]
 
     def PrintInfix(node):
         if node:
@@ -63,21 +71,21 @@ if __name__ == "__main__":
     def PrintPrefix(node):
         if node:
             print(node.value, end=' ')
-            PrintInfix(node.left)
-            PrintInfix(node.right)
+            PrintPrefix(node.left)
+            PrintPrefix(node.right)
 
     def PrintPostfix(node):
         if node:
-            PrintInfix(node.left)
-            PrintInfix(node.right)
+            PrintPostfix(node.left)
+            PrintPostfix(node.right)
             print(node.value, end=' ')
 
     print("INFIX: ")
-    PrintInfix(stack[0])
+    PrintInfix(root)
     print()
     print("PREFIX: ")
-    PrintPrefix(stack[0])
+    PrintPrefix(root)
     print()
     print("POSTFIX: ")
-    PrintPostfix(stack[0])
+    PrintPostfix(root)
     print()

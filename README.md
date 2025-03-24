@@ -1,20 +1,12 @@
 # poland
-Polish prefix/postfix method to write math expressions
+Convert infix to postfix/prefix notation
 ```text
-$ infix_to_postfix.py "2+2*3-(6+3)"
-Infix: 2 + 2 * 3 - ( 6 + 3 )
-Rewriting in postfix:
-token/stack
-  '2' | '' -> ''
-  '+' | '' -> '+'
-  '2' | '+' -> '+'
-  '*' | '+' -> '+*'
-  '3' | '+*' -> '+*'
-  '-' | '+*' -> '-'
-  '(' | '-' -> '-('
-  '6' | '-(' -> '-('
-  '+' | '-(' -> '-(+'
-  '3' | '-(+' -> '-(+'
-  ')' | '-(+' -> '-'
-Postfix: 2 2 3 * + 6 3 + -
+$ ./pol.py "a+b*c-(d+e)^f/g"
+
+INFIX:
+a + b * c - d + e ^ f / g
+PREFIX:
+- + a * b c / ^ + d e f g
+POSTFIX:
+a b c * + d e + f ^ g / -
 ```
