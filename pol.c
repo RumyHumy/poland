@@ -2,10 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+// U T I L
+
+void PrintStringArray(char** arr, char* sep) {
+	for (char** ptr = arr; *ptr; ptr++)
+		printf("%s%s", *ptr, *(ptr+1) ? sep : "");
+}
+
 #define ALLOC_CHECK(var) \
 	if (!var) { printf("Out of memory."); exit(1); }
 
+// G L O B A L
+
 char ordmap[255];
+
+// T O K E N S
 
 char** ToksAlloc(char* str) {
 	int len = strlen(str);
@@ -30,9 +41,32 @@ char** ToksAlloc(char* str) {
 	return toks;
 }
 
-void ToksFree(char** toks) {
-	free(toks[0]);
-	free(toks);
+// E X P R E S S I O N S
+
+typedef struct ExpNode ExpNode;
+struct ExpNode {
+	char* value;
+	ExpNode* left;
+	ExpNode* right;
+};
+
+typedef struct ExpTree ExpTree;
+struct ExpTree {
+	char** toks;
+	ExpNode* root;
+};
+
+ExpTree ExpTreeAlloc(char* str) {
+	char** infix = ToksAlloc(str);
+	PrintStringArray(infix, ", ");
+	ExpTree exp;
+	return exp;
+}
+
+void ExpTreeFree(ExpTree exp) {
+	free(exp.toks[0]);
+	free(exp.toks);
+	// TODO: Tree free
 }
 
 int main(int argc, char* argv[]) {
@@ -54,10 +88,8 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
-	char** infix = ToksAlloc(argv[1]);
-	for (char** ptr = infix; *ptr; ptr++)
-		printf("%s\n", *ptr);
-	ToksFree(infix);
+	ExpTree exp = ExpTreeAlloc(argv[1]);
+	ExpTreeFree(exp);
 
 	return 0;
 }
