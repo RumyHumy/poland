@@ -83,18 +83,43 @@ void ExpTreePrintPrefix(ExpTree exp) {
 		return;
 	ExpNode* curr = exp.root;
 	ExpNode** stack = calloc(exp.tcount, sizeof(ExpNode*));
+	ALLOC_CHECK(stack);
+	stack[0] = curr;
 	int top = 0;
 	while (top != -1) {
-		curr = stack[top];
-		top--;
+		curr = stack[top--];
 		printf("%s ", curr->value);
 		if (curr->right) stack[++top] = curr->right;
 		if (curr->left) stack[++top] = curr->left;
 	}
+	printf("\n");
+}
+
+void ExpTreePrintPostfix(ExpTree exp) {
+	if (!exp.root)
+		return;
+	ExpNode* curr = exp.root;
+	ExpNode** stack = calloc(exp.tcount, sizeof(ExpNode*));
+	ALLOC_CHECK(stack);
+	stack[0] = curr;
+	int tops = 0;
+	ExpNode** output = calloc(exp.tcount, sizeof(ExpNode*));
+	ALLOC_CHECK(output);
+	int topo = -1;
+	while (tops != -1) {
+		curr = stack[tops--];
+		output[++topo] = curr;
+		if (curr->right) stack[++tops] = curr->right;
+		if (curr->left) stack[++tops] = curr->left;
+	}
+	while (topo != -1)
+		printf("%s ", output[topo--]->value);
+	printf("\n");
 }
 
 void _ExpTreeAddOperator(ExpNode** nodes, int* _nodes, char** ops, int* _ops) {
 	ExpNode* node = calloc(1, sizeof(ExpNode));
+	ALLOC_CHECK(node);
 	node->value = ops[(*_ops)--];
 	node->right = nodes[(*_nodes)--];
 	node->left = nodes[(*_nodes)--];
@@ -116,14 +141,22 @@ ExpTree ExpTreeAlloc(char* str) {
 	ExpNode** nodes = calloc(exp.tcount, sizeof(char));
 	ALLOC_CHECK(nodes)
 	int _nodes = -1;
-	
+
+	// TODO: Invalid expression handling
 	for (char** tok = exp.toks; *tok; tok++) {
-		if (ordmap[(*tok)[0]]) {
+		if ((*tok)[0] == '(') {
+			ops[++_ops] = *tok;
+		} else if ((*tok)[0] == ')') {
+			while (_ops != -1 && ops[_ops][0] != '(')
+				_ExpTreeAddOperator(nodes, &_nodes, ops, &_ops);
+			_ops--;
+		} else if (ordmap[(*tok)[0]]) {
 			while (_ops != -1 && ordmap[(*tok)[0]] <= ordmap[ops[_ops][0]])
 				_ExpTreeAddOperator(nodes, &_nodes, ops, &_ops);
 			ops[++_ops] = *tok;
 		} else {
 			ExpNode* node = calloc(1, sizeof(ExpNode));
+			ALLOC_CHECK(node);
 			node->value = *tok;
 			nodes[++_nodes] = node;
 		}
@@ -131,9 +164,6 @@ ExpTree ExpTreeAlloc(char* str) {
 	while (_ops != -1)
 		_ExpTreeAddOperator(nodes, &_nodes, ops, &_ops);
 	exp.root = nodes[0];
-
-	printf("PREFIX:\n");
-	ExpTreePrintPrefix(exp);
 
 	//free(ops);
 	//free(nodes);
@@ -148,10 +178,11 @@ void ExpTreeFree(ExpTree exp) {
 		return;
 	ExpNode* curr = exp.root;
 	ExpNode** stack = calloc(exp.tcount, sizeof(ExpNode*));
+	ALLOC_CHECK(stack);
+	stack[0] = curr;
 	int top = 0;
 	while (top != -1) {
-		curr = stack[top];
-		top--;
+		curr = stack[top--];
 		if (curr->right) stack[++top] = curr->right;
 		if (curr->left) stack[++top] = curr->left;
 		free(curr);
@@ -178,6 +209,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	ExpTree exp = ExpTreeAlloc(argv[1]);
+	printf("PREFIX:\n");
+	ExpTreePrintPrefix(exp);
+	printf("POSTFIX:\n");
+	ExpTreePrintPostfix(exp);
 	ExpTreeFree(exp);
 
 	return 0;
