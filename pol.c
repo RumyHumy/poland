@@ -109,8 +109,8 @@ void ExpTreePrintPostfix(ExpTree exp) {
 	while (tops != -1) {
 		curr = stack[tops--];
 		output[++topo] = curr;
-		if (curr->right) stack[++tops] = curr->right;
 		if (curr->left) stack[++tops] = curr->left;
+		if (curr->right) stack[++tops] = curr->right;
 	}
 	while (topo != -1)
 		printf("%s ", output[topo--]->value);
