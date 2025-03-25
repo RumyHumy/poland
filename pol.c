@@ -28,7 +28,7 @@ char ordmap[255];
 
 // T O K E N S
 
-char** ToksAlloc(char* str) {
+char** ToksAlloc(char* str, int* tcount) {
 	// Extended string with separators
 	int len = strlen(str);
 	char* estr = calloc(len*2+1, sizeof(char));
@@ -52,6 +52,8 @@ char** ToksAlloc(char* str) {
 	ALLOC_CHECK(estr)
 	toks = (char**)realloc(toks, (t+1)*sizeof(char*));
 	ALLOC_CHECK(toks)
+	if (tcount)
+		*tcount = t;
 	//PrintString(estr, j);
 	//printf("\n");
 	//PrintStringArrayN(toks, ", ", t+1);
@@ -71,30 +73,89 @@ struct ExpNode {
 
 typedef struct ExpTree ExpTree;
 struct ExpTree {
+	int tcount;
 	char** toks;
 	ExpNode* root;
 };
 
+void ExpTreePrintPrefix(ExpTree exp) {
+	if (!exp.root)
+		return;
+	ExpNode* curr = exp.root;
+	ExpNode** stack = calloc(exp.tcount, sizeof(ExpNode*));
+	int top = 0;
+	while (top != -1) {
+		curr = stack[top];
+		top--;
+		printf("%s ", curr->value);
+		if (curr->right) stack[++top] = curr->right;
+		if (curr->left) stack[++top] = curr->left;
+	}
+}
+
+void _ExpTreeAddOperator(ExpNode** nodes, int* _nodes, char** ops, int* _ops) {
+	ExpNode* node = calloc(1, sizeof(ExpNode));
+	node->value = ops[(*_ops)--];
+	node->right = nodes[(*_nodes)--];
+	node->left = nodes[(*_nodes)--];
+	nodes[++(*_nodes)] = node;
+}
+
 ExpTree ExpTreeAlloc(char* str) {
 	ExpTree exp;
-	exp.toks = ToksAlloc(str);
+	exp.tcount = 0;
+	exp.toks = ToksAlloc(str, &exp.tcount);
 	exp.root = NULL;
 	PrintStringArray(exp.toks, ", ");
 	printf("\n");
 
 	// Constructing tree
-	//char** ops;
-	//ALLOC_CHECK(ops)
-	//ExpNode** nodes;
-	//ALLOC_CHECK(ops)
+	char** ops = calloc(exp.tcount, sizeof(char*));
+	ALLOC_CHECK(ops)
+	int _ops = -1;
+	ExpNode** nodes = calloc(exp.tcount, sizeof(char));
+	ALLOC_CHECK(nodes)
+	int _nodes = -1;
+	
+	for (char** tok = exp.toks; *tok; tok++) {
+		if (ordmap[(*tok)[0]]) {
+			while (_ops != -1 && ordmap[(*tok)[0]] <= ordmap[ops[_ops][0]])
+				_ExpTreeAddOperator(nodes, &_nodes, ops, &_ops);
+			ops[++_ops] = *tok;
+		} else {
+			ExpNode* node = calloc(1, sizeof(ExpNode));
+			node->value = *tok;
+			nodes[++_nodes] = node;
+		}
+	}
+	while (_ops != -1)
+		_ExpTreeAddOperator(nodes, &_nodes, ops, &_ops);
+	exp.root = nodes[0];
+
+	printf("PREFIX:\n");
+	ExpTreePrintPrefix(exp);
+
+	//free(ops);
+	//free(nodes);
 	
 	return exp;
 }
 
 void ExpTreeFree(ExpTree exp) {
-	//free(exp.toks[0]);
-	//free(exp.toks);
-	// TODO: Tree free
+	free(exp.toks[0]);
+	free(exp.toks);
+	if (!exp.root)
+		return;
+	ExpNode* curr = exp.root;
+	ExpNode** stack = calloc(exp.tcount, sizeof(ExpNode*));
+	int top = 0;
+	while (top != -1) {
+		curr = stack[top];
+		top--;
+		if (curr->right) stack[++top] = curr->right;
+		if (curr->left) stack[++top] = curr->left;
+		free(curr);
+	}
 }
 
 int main(int argc, char* argv[]) {
