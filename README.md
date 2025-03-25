@@ -21,5 +21,5 @@ $ ./pol "a+b*c-(d+e)^f/g"
 PREFIX:
 - + a * b c / ^ + d e f g
 POSTFIX:
-g f e d + ^ / c b * a + -
+a b c * + d e + f ^ g / -  
 ```
